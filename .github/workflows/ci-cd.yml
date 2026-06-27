@@ -57,7 +57,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ticket:latest
 
-  # ==========================================
+# ==========================================
   # ETAPA 3: DEPLOY CONTINUO A AWS EC2 VIA SSH
   # ==========================================
   deploy-ec2:
@@ -74,10 +74,15 @@ jobs:
           envs: DOCKER_USERNAME
           script: |
             cd ~/monitoring
+            
+            # Descargar la nueva imagen
             sudo docker pull $DOCKER_USERNAME/ticket:latest
-            export DOCKER_USERNAME=$DOCKER_USERNAME
-            sudo -E docker-compose down
-            sudo -E docker-compose up -d
+            
+            # Detener y levantar usando el comando moderno de Docker V2
+            sudo DOCKER_USERNAME=$DOCKER_USERNAME docker compose down
+            sudo DOCKER_USERNAME=$DOCKER_USERNAME docker compose up -d
+            
+            # Limpieza
             sudo docker image prune -f
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
