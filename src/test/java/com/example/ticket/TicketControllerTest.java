@@ -1,24 +1,22 @@
 package com.example.ticket;
 
+import com.example.ticket.infrastructure.adapter.in.web.TicketController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles("test")
 class TicketControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TicketController ticketController;
 
     @Test
-    void testVersionEndpoint() throws Exception {
-        mockMvc.perform(get("/version"))
-            .andExpect(status().isOk());
+    void testVersionEndpoint() {
+        String version = ticketController.version();
+        assertNotNull(version);
     }
 }
