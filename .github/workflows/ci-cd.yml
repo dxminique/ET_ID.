@@ -98,7 +98,7 @@ jobs:
   # ==========================================
   # ETAPA 4: DEPLOY CONTINUO A AWS EC2 VIA SSH
   # ==========================================
- deploy-ec2:
+  deploy-ec2:
     needs: build-docker
     runs-on: ubuntu-latest
     steps:
