@@ -131,6 +131,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
             </plugin>
         </plugins>
     </build>
