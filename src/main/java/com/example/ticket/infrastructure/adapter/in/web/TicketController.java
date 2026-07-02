@@ -13,6 +13,7 @@ import com.example.ticket.domain.model.EstadoTicket;
 import com.example.ticket.domain.model.Ticket;
 import com.example.ticket.domain.port.in.ConsultarEstadoTicketUseCase;
 import com.example.ticket.domain.port.in.RegistrarTicketUseCase;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/tickets")
