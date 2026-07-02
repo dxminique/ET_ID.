@@ -39,8 +39,15 @@
 </head>
 <body>
   <h1>🎫 Ticket Service</h1>
-  <div class="version">v1.0</div>
+  <div class="version" id="version">Cargando...</div>
   <div class="badge">● Servicio activo</div>
   <p class="status">DOY0101 - Evaluación Parcial 3 - Observabilidad DevOps</p>
+
+  <script>
+    fetch('/version')
+      .then(r => r.text())
+      .then(v => document.getElementById('version').innerText = v)
+      .catch(() => document.getElementById('version').innerText = 'v-desconocida');
+  </script>
 </body>
 </html>
