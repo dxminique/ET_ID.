@@ -39,7 +39,7 @@ jobs:
   # ==========================================
   # ETAPA 2: SEGURIDAD CON SNYK (IE5/IE6) 
   # ==========================================
-   security-snyk:
+  security-snyk:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +71,6 @@ jobs:
         with:
           name: snyk-report
           path: snyk-report.json
-
   # ==========================================
   # ETAPA 3: BUILD & PUSH DOCKER IMAGE
   # ==========================================
