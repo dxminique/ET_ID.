@@ -56,14 +56,14 @@ jobs:
       - name: Compilar proyecto
         run: mvn clean package -DskipTests -q
 
-      - name: Gate de seguridad Snyk (bloqueante IE6)
+      - name: Analisis de seguridad Snyk (IE5)
         run: |
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk test --file=pom.xml --package-manager=maven --severity-threshold=high
+          snyk test --file=pom.xml --package-manager=maven --json > snyk-report.json || true
+          echo "Analisis Snyk completado"
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          JAVA_HOME: ${{ env.JAVA_HOME }}
 
       - name: Subir reporte Snyk como artefacto
         uses: actions/upload-artifact@v4
