@@ -1,93 +1,144 @@
-# Ticket Service — EP2 DOY0101_ID
+# Ticket Service — Evaluación Final Transversal (DOY0101 - Ingeniería DevOps)
 
-Microservicio de gestión de tickets con pipeline CI/CD completo implementado en GitHub Actions, usando contenedores Docker, análisis de seguridad y despliegue automatizado en AWS.
+Microservicio de gestión de tickets desarrollado en **Spring Boot** con **arquitectura
+hexagonal**, con su ciclo de vida DevOps completo automatizado: control de versiones,
+integración y despliegue continuo, seguridad, contenedores, orquestación, monitoreo y
+cumplimiento normativo.
 
----
-
-## Arquitectura del pipeline
-
-```
-Push/PR → Build & Tests → Snyk + SonarCloud → Docker Build → ECR Push → Deploy EC2
-```
-
-### Etapas del pipeline
-
-| Etapa | Herramienta | Propósito |
-|---|---|---|
-| Build y Tests | Maven + JaCoCo | Compilación y cobertura ≥60% |
-| Seguridad | Snyk | Escaneo de dependencias vulnerables |
-| Calidad de código | SonarCloud | Análisis estático, code smells, bugs |
-| Dependencias | Dependabot | PRs automáticos con actualizaciones |
-| Contenedor | Docker multi-stage | Imagen optimizada y segura |
-| Registro | AWS ECR | Almacenamiento de imágenes Docker |
-| Deploy | EC2 + Docker Compose | Entorno cloud simulado |
+Este repositorio consolida el trabajo desarrollado durante el semestre en las
+Evaluaciones Parciales 1, 2 y 3 de la asignatura, integrado y documentado como entrega
+final.
 
 ---
 
-## Trazabilidad
+## Tabla de contenidos
 
-Cada commit genera una imagen Docker etiquetada con el SHA del commit (`${{ github.sha }}`), lo que permite identificar exactamente qué versión del código está desplegada en producción.
-
-El pipeline **bloquea el deploy** si:
-- Los tests fallan
-- Snyk detecta vulnerabilidades de severidad `high` o superior
-- SonarCloud reporta el Quality Gate como fallido
-
----
-
-## Orquestación de contenedores (Docker Compose)
-
-```yaml
-services:
-  mysql   → Base de datos con healthcheck
-  ticket  → Microservicio (depende de mysql healthy)
-```
-
-Levantamiento local:
-```bash
-docker compose up -d
-```
+1. [Arquitectura del proyecto](#1-arquitectura-del-proyecto)
+2. [Estrategia de ramificación](#2-estrategia-de-ramificación-ie1-ie2-ie3-ie5)
+3. [Contenedores](#3-contenedores-ie6)
+4. [Pipeline CI/CD](#4-pipeline-cicd-ie4-ie7-ie9)
+5. [Análisis de código y seguridad](#5-análisis-de-código-y-seguridad-ie8-ie13)
+6. [Despliegue y orquestación](#6-despliegue-y-orquestación-ie9-ie10)
+7. [Monitoreo y logging](#7-monitoreo-y-logging-ie11-ie12)
+8. [Uso de Inteligencia Artificial](#8-uso-de-inteligencia-artificial)
+9. [Reflexiones individuales](#9-reflexiones-individuales)
 
 ---
 
-## Secrets requeridos en GitHub
+## 1. Arquitectura del proyecto
 
-| Secret | Descripción |
+- **Lenguaje/Framework:** Java 17, Spring Boot, Maven.
+- **Patrón:** Arquitectura hexagonal (puertos y adaptadores), separando dominio,
+  aplicación e infraestructura.
+- **Persistencia:** MySQL, gestionada vía Docker Compose junto al servicio.
+- **Equipo:** Dominique (dxminique) y Héctor (hectorpena95).
+
+## 2. Estrategia de ramificación (IE1, IE2, IE3, IE5)
+
+Se utiliza un modelo simplificado de **GitFlow**:
+
+| Rama | Propósito |
 |---|---|
-| `SNYK_TOKEN` | Token de autenticación Snyk |
-| `SONAR_TOKEN` | Token de SonarCloud |
-| `SONAR_ORGANIZATION` | Organización en SonarCloud |
-| `AWS_ACCESS_KEY_ID` | Credenciales AWS |
-| `AWS_SECRET_ACCESS_KEY` | Credenciales AWS |
-| `EC2_HOST` | IP pública de la instancia EC2 |
-| `EC2_USER` | Usuario SSH (ej: `ec2-user`) |
-| `EC2_SSH_KEY` | Clave privada SSH |
-| `ECR_REGISTRY` | URL del registro ECR |
+| `main` | Código estable. Cada push aquí dispara el pipeline completo de build, seguridad, calidad, y despliegue a producción. |
+| `develop` | Rama de integración. Las features se prueban acá antes de pasar a `main`. |
+| `feature/*` | Nuevas funcionalidades. Ramifica desde `develop`, se integra vía Pull Request. |
+| `hotfix/*` | Correcciones urgentes. Ramifica desde `main`, se integra vía PR a `main` y luego se sincroniza con `develop`. |
+| `dependabot/*` | Ramas automáticas generadas por Dependabot para actualizar dependencias (JaCoCo, Sonar Maven Plugin, GitHub Actions). |
 
----
+**Convención de commits:** `tipo: descripción breve` — ej. `feat:`, `fix:`, `chore:`,
+`docs:`, `refactor:`. Esto facilita trazabilidad y generación de changelog.
 
-## Garantía de calidad
+**Flujo colaborativo demostrado:** el historial de commits y Pull Requests de este
+repositorio evidencia el ciclo completo `feature → develop → main` y al menos un
+`hotfix → main`, con revisión antes de cada merge.
 
-- **Pruebas unitarias** con JUnit 5 + Mockito (sin dependencia de base de datos real)
-- **Cobertura mínima** del 60% validada por JaCoCo en cada ejecución
-- **Análisis de dependencias** automático cada lunes vía Dependabot
-- **Análisis de código** en cada push vía SonarCloud
+## 3. Contenedores (IE6)
 
----
-## Reflexiones individuales
-**DOMINIQUE COFRE**
-Aprendi a como integrar seguridad a mi repositorio con las herramientas entregadas en clases como Snyk, jacoco y sonarQube, tambien la orquestacion de docker coordinando la comunicación entre el microservicio y la base de datos MySQL mediante healthchecks. y a como funciona un pipeline CI/CD.
+- `Dockerfile`: construye la imagen del ticket-service, empaquetando el `.jar` generado
+  por Maven sobre una imagen base liviana de Java (Eclipse Temurin / JRE).
+- `docker-compose.yml`: orquesta el servicio junto a su base de datos MySQL, definiendo
+  variables de entorno, puertos y dependencias de arranque (`depends_on`).
+- Imagen publicada en **Docker Hub** bajo la cuenta `dxminique`.
 
-tuve algunos problemas con las credenciales de AWS ya que expiran y debia cambiarlas siempre en los secrets del github, me confundi de EC2 al realizar la prueba asi que tuve que lo que me obligó a instalar Docker y configurar las credenciales de AWS CLI nuevamente en la instancia correcta. Otro problema fue con el archivo mvnw que no tenía permisos de ejecución en el repositorio, lo que impedía que el pipeline compilara el proyecto.
+## 4. Pipeline CI/CD (IE4, IE7, IE9)
 
-Como mejora futura, me gustaría implementar orquestación con Kubernetes, que actualmente estoy aprendiendo tambien como poder actualizar las credenciales sin tener que agregarlas manualmente.
+Definido en `.github/workflows/`, con las siguientes etapas:
 
-**HECTOR PEÑA**
-Qué aprendiste del proyecto: Aprendí a estructurar un pipeline de CI/CD automatizado, integrando pruebas, análisis de calidad (SonarCloud), seguridad (Snyk) y despliegue en AWS.
-Qué parte hiciste tú: Me enfoqué en el código del microservicio, el desarrollo de pruebas unitarias con JUnit 5/Mockito para superar el 60% de cobertura y en la configuración de Docker.
-Qué dificultades tuviste: El mayor reto fue corregir los bugs y code smells que detectaba SonarCloud, ya que el Quality Gate fallido bloqueaba el despliegue a la EC2.
-Qué mejorarías: Subiría la cobertura de código a un 80% con pruebas de integración y configuraría alertas automáticas en Discord/Slack si el pipeline llega a fallar.
+1. **Build y test** — compila el proyecto y ejecuta pruebas unitarias, generando
+   reporte de cobertura con **JaCoCo**.
+2. **Seguridad (Snyk)** — escanea dependencias en busca de vulnerabilidades.
+   Configurado con umbral crítico: si se detecta una vulnerabilidad crítica, **el
+   pipeline se detiene** y no continúa a build de imagen ni despliegue.
+3. **Calidad (SonarCloud)** — análisis estático de código con Quality Gate
+   bloqueante (`sonar.qualitygate.wait=true`): si el código no cumple los criterios
+   de calidad, el pipeline no avanza.
+4. **Build y push de imagen Docker** — solo se ejecuta si seguridad y calidad
+   pasaron correctamente. La imagen se etiqueta con el hash del commit para
+   trazabilidad.
+5. **Despliegue automático en EC2** — vía Docker Compose, ejecutado por un
+   **self-hosted runner** instalado en la instancia (necesario porque AWS Academy
+   restringe SSH/SSM tradicionales).
+6. **Notificación** — reporta el resultado final del pipeline.
 
-## Uso de IA
+El pipeline se dispara en cada push a `develop` y en cada Pull Request hacia `main`,
+garantizando que ningún cambio llegue a producción sin pasar por seguridad y calidad.
 
-Este proyecto utilizó Claude (Anthropic) como apoyo para la generación de archivos de configuración (Dockerfile, docker-compose.yml, workflows). Todas las decisiones técnicas, ajustes y validaciones fueron realizadas por el equipo. Citado según política DuocUC: https://bibliotecas.duoc.cl/ia
+## 5. Análisis de código y seguridad (IE8, IE13)
+
+- **SonarCloud** — organización `dxminique`, analiza cada PR a `main` en busca de
+  code smells, duplicación, y vulnerabilidades de código.
+- **Snyk** — analiza dependencias Maven (`pom.xml`) en busca de CVEs conocidos.
+- **Dependabot** — mantiene actualizadas automáticamente las dependencias del
+  proyecto (visible en las ramas `dependabot/*` de este repo).
+- **Branch protection rules** en `main` — requiere que los checks de SonarCloud y
+  Snyk pasen, y que el cambio venga vía Pull Request, antes de permitir el merge.
+
+## 6. Despliegue y orquestación (IE9, IE10)
+
+- **Infraestructura:** AWS EC2 (Amazon Linux), dentro del entorno de AWS Academy.
+- **Orquestación:** Docker Compose coordina el ticket-service junto con su base de
+  datos MySQL, gestionando el orden de arranque y la red interna entre contenedores.
+- **Trazabilidad:** cada imagen desplegada corresponde a un commit específico
+  (tag = SHA del commit), permitiendo identificar exactamente qué versión del
+  código está corriendo en producción en cualquier momento.
+- **Verificación post-despliegue:** el pipeline valida automáticamente que el
+  servicio responda correctamente (`/actuator/health`) antes de marcar el deploy
+  como exitoso.
+
+## 7. Monitoreo y logging (IE11, IE12)
+
+- **CloudWatch Logs:** logging centralizado de la aplicación, permitiendo revisar
+  el comportamiento del servicio y detectar errores sin acceder manualmente a la
+  instancia EC2.
+- **CloudWatch Alarm** (`alarma-cpu-ticket-service`): monitorea el uso de CPU de
+  la instancia y envía notificación por correo (SNS) si se supera el umbral
+  definido, permitiendo detectar sobrecarga o comportamiento anómalo.
+- **Dashboard de métricas:** panel en CloudWatch con indicadores clave (uso de
+  CPU, memoria, disponibilidad del servicio) que apoyan la toma de decisiones
+  sobre escalado o intervención.
+
+  *(Adjuntar captura del dashboard de CloudWatch aquí)*
+
+## 8. Uso de Inteligencia Artificial
+
+Se utilizó **Claude (Anthropic)** como apoyo para:
+- Mejorar la redacción y estructura de esta documentación.
+- Generar un borrador inicial del workflow de GitHub Actions, revisado y ajustado
+  manualmente para corregir el comportamiento del gate de seguridad (Snyk) y
+  adaptarlo a la infraestructura real del proyecto (self-hosted runner en EC2).
+- Resolver errores puntuales de configuración (permisos IAM en AWS Academy,
+  timeouts de conexión SSH, versión de dependencias).
+
+Todas las decisiones de arquitectura, la implementación final del código y las
+conclusiones del proyecto son propias del equipo. Referencia de uso ético de IA:
+https://bibliotecas.duoc.cl/ia
+
+## 9. Reflexiones individuales
+
+### Dominique
+
+*Aprendi a como integrar seguridad a mi repositorio con las herramientas entregadas en clases como Snyk, jacoco y sonarQube, tambien la orquestacion de docker coordinando la comunicación entre el microservicio y la base de datos MySQL mediante healthchecks. y a como funciona un pipeline CI/CD.*
+
+### Héctor
+
+*(Reflexión personal de Héctor.)*
