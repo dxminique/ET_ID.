@@ -101,15 +101,20 @@ jobs:
   # ==========================================
   deploy-ec2:
     needs: build-docker
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy con imagen nueva (IE2)
-        run: |
-          cd ~/monitoring
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ticket:latest
-          sudo DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose down
-          sudo docker rm -f mysql-ticket ticket-service 2>/dev/null || true
-          sudo DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose up -d
-          sudo docker image prune -f
-          sleep 20
-          curl -s http://localhost:8081/actuator/health && echo "Deploy exitoso" || echo "App iniciando"
+      - name: Deploy vía SSH a EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/monitoring
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ticket:latest
+            sudo DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose down
+            sudo docker rm -f mysql-ticket ticket-service 2>/dev/null || true
+            sudo DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose up -d
+            sudo docker image prune -f
+            sleep 20
+            curl -s http://localhost:8081/actuator/health && echo "Deploy exitoso" || echo "App iniciando"
