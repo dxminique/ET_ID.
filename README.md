@@ -141,4 +141,4 @@ https://bibliotecas.duoc.cl/ia
 
 ### Héctor
 
-*(Reflexión personal de Héctor.)*
+*Durante el desarrollo de esta evaluación, pude consolidar el impacto de adoptar una cultura DevOps de extremo a extremo. Destaco especialmente el aprendizaje práctico en el diseño e implementación del pipeline CI/CD con GitHub Actions, integrando umbrales de calidad y seguridad bloqueantes (Snyk y SonarCloud) que garantizan un código robusto antes del despliegue. Asimismo, la experiencia de gestionar el despliegue automatizado mediante Docker Compose y un self-hosted runner en AWS EC2 me permitió comprender los desafíos reales de infraestructura y la importancia del monitoreo continuo con CloudWatch para asegurar la alta disponibilidad del servicio.*
